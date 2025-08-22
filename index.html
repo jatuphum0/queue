@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบแสดงคิวรับการรักษา</title>
+    <style>
+        @font-face {
+        font-family: 'Sarabun';
+        src: url('fonts/Sarabun-Regular.ttf') format('truetype'),
+            url('fonts/Sarabun-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        }        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1024px;
+            margin: 0 auto;
+        }
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f8;
+    border-radius: 12px;
+    padding: 15px 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.header img {
+    width: 70px;
+    height: auto;
+    margin-right: 15px;
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.title {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #333;
+}
+
+.subtitle {
+    font-size: 1em;
+    color: #777;
+    margin-top: 4px;
+}
+
+        .department-selector {
+            margin-top: 10px;
+        }
+
+        .department-selector label {
+            display: block;
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .department-dropdown {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 15px 20px;
+            font-size: 1.1em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .department-dropdown:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .department-dropdown:hover {
+            border-color: #4CAF50;
+        }
+
+        .queue-display {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 5px;
+        }
+
+        .doctor-section {
+            margin-bottom: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .doctor-header {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .doctor-name {
+            font-size: 1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .doctor-queue-count {
+            font-size: 0.8em;
+            opacity: 0.9;
+        }
+
+        .columns-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .column {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .column-header {
+            background: linear-gradient(45deg, #9C27B0, #7B1FA2);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .column-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .doctor-selector {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            cursor: pointer;
+        }
+
+        .doctor-selector:focus {
+            outline: none;
+            background: white;
+        }
+
+        .single-column {
+            width: 100%;
+        }
+
+        @media (max-width: 1024px) {
+            .columns-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        .department-header {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 5px;
+            text-align: center;
+        }
+
+        .department-name {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .queue-count {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .queue-list {
+            padding: 30px;
+        }
+
+        .queue-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 5px solid #4CAF50;
+            transition: all 0.3s ease;
+        }
+
+        .queue-item:hover {
+            background: rgba(76, 175, 80, 0.1);
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .queue-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .queue-number {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.4em;
+            min-width: 60px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);
+        }
+
+        .patient-info {
+            flex: 1;
+            margin: 0 20px;
+        }
+
+        .patient-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .queue-time {
+            color: #666;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+        }
+
+        .queue-time::before {
+            content: "🕐";
+            margin-right: 8px;
+        }
+
+        .lab-status {
+            background: linear-gradient(45deg, #FF9800, #F57C00);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+            box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .no-selection {
+            text-align: center;
+            padding: 60px 40px;
+            color: #666;
+            font-size: 1.3em;
+        }
+
+        .no-selection-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .no-queue {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-style: italic;
+            font-size: 1.2em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .update-loading {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            font-size: 0.9em;
+            animation: slideIn 0.3s ease;
+        }
+
+        .update-loading .mini-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff40;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .current-time {
+                font-size: 1.2em;
+            }
+
+            .queue-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .patient-info {
+                margin: 0;
+            }
+
+            .department-name {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+<div class="header">
+    <img src="img/logo.png" alt="Logo">
+    <div class="header-text">
+        <div class="title">ระบบแสดงคิวรับการรักษา</div>
+        <div class="subtitle" id="currentTime">วันอังคารที่ 29 กรกฎาคม 2568 เวลา 11:51:32</div>
+    </div>
+</div>
+        
+        <div id="queueDisplay" class="hidden">
+            <div class="queue-display">
+                <div class="department-header">
+                    <div class="department-name" id="selectedDepartmentName"></div>
+                    <div class="queue-count" id="queueCount"></div>
+                </div>
+                <div id="doctorSections">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        กำลังโหลดข้อมูล...
+                    </div>
+                </div>
+                
+                <!-- Columns for multiple doctors -->
+                <div id="columnsContainer" class="columns-container hidden">
+                    <div class="column">
+                        <div class="column-header">
+                            <!-- <div class="column-title">หน้าจอที่ 1</div> -->
+                            <select id="doctorSelect1" class="doctor-selector">
+                                <option value="">-- เลือกหมอ --</option>
+                            </select>
+                        </div>
+                        <div id="column1Content"></div>
+                    </div>
+                    
+                    <div class="column">
+                        <div class="column-header">
+                            <!-- <div class="column-title">หน้าจอที่ 2</div> -->
+                            <select id="doctorSelect2" class="doctor-selector">
+                                <option value="">-- เลือกหมอ --</option>
+                            </select>
+                        </div>
+                        <div id="column2Content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="noSelection" class="queue-display">
+            <div class="no-selection">
+                <div class="no-selection-icon">🏥</div>
+                <div>กรุณาเลือกแผนกเพื่อดูรายการคิว</div>
+                <div class="department-selector">
+                    <select id="departmentSelect" class="department-dropdown">
+                        <option value="">-- กรุณาเลือกแผนก --</option>
+                    </select>
+                </div>            
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class QueueDisplay {
+            constructor() {
+                this.updateInterval = 10000; // อัปเดตทุก 10 วินาที
+                this.selectedDepartment = '';
+                this.departments = {};
+                this.availableDoctors = {};
+                this.selectedDoctors = { column1: '', column2: '' };
+                this.allQueues = [];
+                this.loadDoctorSelections();
+                this.init();
+            }
+
+            init() {
+                this.updateCurrentTime();
+                this.loadDepartmentList();
+                this.setupEventListeners();
+                
+                // อัปเดตเวลาทุกวินาที
+                setInterval(() => this.updateCurrentTime(), 1000);
+                
+                // อัปเดตข้อมูลคิวตามช่วงเวลาที่กำหนด
+                setInterval(() => {
+                    if (this.selectedDepartment) {
+                        this.loadQueueData();
+                    }
+                }, this.updateInterval);
+            }
+
+            setupEventListeners() {
+                const departmentSelect = document.getElementById('departmentSelect');
+                departmentSelect.addEventListener('change', (e) => {
+                    this.selectedDepartment = e.target.value;
+                    // เพิ่มการเก็บชื่อแผนกที่เลือก
+                    const selectedOption = e.target.options[e.target.selectedIndex];
+                    this.selectedDepartmentName = selectedOption.text;
+                    this.handleDepartmentChange();
+                });
+                
+                // Add doctor selector listeners
+                document.getElementById('doctorSelect1').addEventListener('change', (e) => {
+                    this.selectedDoctors.column1 = e.target.value;
+                    this.saveDoctorSelections();
+                    this.updateColumnDisplay(1);
+                });
+                
+                document.getElementById('doctorSelect2').addEventListener('change', (e) => {
+                    this.selectedDoctors.column2 = e.target.value;
+                    this.saveDoctorSelections();
+                    this.updateColumnDisplay(2);
+                });
+            }
+
+            updateCurrentTime() {
+                const now = new Date();
+                const options = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                };
+                
+                document.getElementById('currentTime').textContent = 
+                    now.toLocaleDateString('th-TH', options);
+            }
+
+            async loadDepartmentList() {
+                try {
+                    const response = await fetch('get_departments.php');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.populateDepartmentDropdown(data.departments);
+                    }
+                } catch (error) {
+                    console.error('Error loading departments:', error);
+                }
+            }
+
+            populateDepartmentDropdown(departments) {
+                const select = document.getElementById('departmentSelect');
+                const currentValue = select.value;
+                
+                // เคลียร์ options เก่า (ยกเว้น option แรก)
+                while (select.children.length > 1) {
+                    select.removeChild(select.lastChild);
+                }
+                
+                // เพิ่ม options ใหม่
+                Object.entries(departments).forEach(([key, value]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = value;
+                    select.appendChild(option);
+                });
+                
+                // เก็บค่าเดิมถ้ามี
+                if (currentValue && Object.keys(departments).includes(currentValue)) {
+                    select.value = currentValue;
+                }
+            }
+
+            handleDepartmentChange() {
+                if (this.selectedDepartment) {
+                    this.showQueueDisplay();
+                    this.loadQueueData();
+                } else {
+                    this.hideQueueDisplay();
+                }
+            }
+
+            showQueueDisplay() {
+                document.getElementById('queueDisplay').classList.remove('hidden');
+                document.getElementById('noSelection').classList.add('hidden');
+                document.getElementById('selectedDepartmentName').textContent = this.selectedDepartmentName;
+            }
+
+            hideQueueDisplay() {
+                document.getElementById('queueDisplay').classList.add('hidden');
+                document.getElementById('noSelection').classList.remove('hidden');
+            }
+
+            async loadQueueData() {
+                if (!this.selectedDepartment) return;
+
+                // แสดง loading indicator สำหรับการอัปเดต
+                this.showUpdateLoading();
+
+                try {
+                    console.log(this.selectedDepartment) ;
+                    const response = await fetch(`get_queue_data.php?department=${encodeURIComponent(this.selectedDepartment)}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.allQueues = data.queues;
+                        this.renderQueuesByDoctor(data.queues);
+                        this.updateQueueCount(data.queues.length);
+                    } else {
+                        this.showError('ไม่สามารถโหลดข้อมูลได้');
+                    }
+                } catch (error) {
+                    console.error('Error loading queue data:', error);
+                    this.showError('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+                } finally {
+                    // ซ่อน loading indicator
+                    this.hideUpdateLoading();
+                }
+            }
+
+            renderQueuesByDoctor(queues) {
+                const doctorSections = document.getElementById('doctorSections');
+                const columnsContainer = document.getElementById('columnsContainer');
+                
+                if (queues.length === 0) {
+                    doctorSections.innerHTML = '<div class="no-queue">ไม่มีคิวในขณะนี้</div>';
+                    columnsContainer.classList.add('hidden');
+                    doctorSections.classList.remove('hidden');
+                    return;
+                }
+
+                // จัดกลุ่มคิวตามหมอ
+                const groupedByDoctor = this.groupQueuesByDoctor(queues);
+                const doctorCount = Object.keys(groupedByDoctor).length;
+                
+                // ถ้ามีหมอมากกว่า 1 คน ให้แสดงแบบ 2 column
+                if (doctorCount > 1) {
+                    this.setupColumnsView(groupedByDoctor);
+                    doctorSections.classList.add('hidden');
+                    columnsContainer.classList.remove('hidden');
+                } else {
+                    // แสดงแบบเดิมถ้ามีหมอคนเดียว
+                    const html = Object.entries(groupedByDoctor).map(([doctorKey, doctorQueues]) => {
+                        return this.renderDoctorSection(doctorKey, doctorQueues);
+                    }).join('');
+                    
+                    doctorSections.innerHTML = html;
+                    doctorSections.classList.remove('hidden');
+                    columnsContainer.classList.add('hidden');
+                }
+            }
+
+            groupQueuesByDoctor(queues) {
+                const grouped = {};
+                
+                queues.forEach(queue => {
+                    const doctorKey = queue.doctor || 'ไม่ระบุหมอ';
+                    const doctorName = queue.doctor_name || 'ไม่ระบุชื่อหมอ';
+                    
+                    if (!grouped[doctorKey]) {
+                        grouped[doctorKey] = {
+                            doctorName: doctorName,
+                            queues: []
+                        };
+                    }
+                    
+                    grouped[doctorKey].queues.push(queue);
+                });
+                
+                return grouped;
+            }
+
+            renderDoctorSection(doctorKey, doctorData, showHeader = true) {
+                const { doctorName, queues } = doctorData;
+                const queueItems = queues.map((queue, index) => this.renderQueueItem(queue, index)).join('');
+                
+                if (!showHeader) {
+                    // สำหรับแสดงใน column ไม่ต้องมี header
+                    return `
+                        <div class="queue-list">
+                            ${queueItems || '<div class="no-queue">ไม่มีคิวสำหรับหมอท่านนี้</div>'}
+                        </div>
+                    `;
+                }
+                
+                return `
+                    <div class="doctor-section">
+                        <div class="doctor-header">
+                            <div class="doctor-name">${doctorName}</div>
+                            <div class="doctor-queue-count">จำนวนคิว: ${queues.length} รายการ</div>
+                        </div>
+                        <div class="queue-list">
+                            ${queueItems}
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderQueueItem(queue, index) {
+                //const ff = queue.name.split(' ') ;
+                //const firstName = ff[0] +' '+ ff[1]; // เอาเฉพาะชื่อ ไม่เอานามสกุล
+                const firstName = queue.name
+                const labStatus = (queue.lab_count > 0 && queue.lab_count > queue.report_count) ? 
+                    '<span class="lab-status">รอผลแล็ป</span>' : '';
+                
+                return `
+                    <div class="queue-item">
+                        <div class="queue-number">${index + 1}</div>
+                        <div class="patient-info">
+                            <div class="patient-name">${firstName}</div>
+                            <div class="queue-time">${queue.cur_dep_time}</div>
+                        </div>
+                        ${labStatus}
+                    </div>
+                `;
+            }
+
+            updateQueueCount(count) {
+                document.getElementById('queueCount').textContent = `จำนวนคิว: ${count} รายการ`;
+            }
+
+            setupColumnsView(groupedByDoctor) {
+                // เติมข้อมูลหมอในดรอปดาวน์
+                this.availableDoctors = groupedByDoctor;
+                this.populateDoctorSelectors(Object.keys(groupedByDoctor));
+                
+                // ตั้งค่าเริ่มต้นให้แสดงหมอ 2 คนแรก (ถ้ายังไม่มีการเลือก)
+                const doctorKeys = Object.keys(groupedByDoctor);
+                if (doctorKeys.length >= 1) {
+                    if (!this.selectedDoctors.column1 || !doctorKeys.includes(this.selectedDoctors.column1)) {
+                        this.selectedDoctors.column1 = doctorKeys[0];
+                    }
+                    document.getElementById('doctorSelect1').value = this.selectedDoctors.column1;
+                    this.updateColumnDisplay(1);
+                }
+                if (doctorKeys.length >= 2) {
+                    if (!this.selectedDoctors.column2 || !doctorKeys.includes(this.selectedDoctors.column2)) {
+                        this.selectedDoctors.column2 = doctorKeys[1];
+                    }
+                    document.getElementById('doctorSelect2').value = this.selectedDoctors.column2;
+                    this.updateColumnDisplay(2);
+                }
+            }
+            
+            populateDoctorSelectors(doctorKeys) {
+                const select1 = document.getElementById('doctorSelect1');
+                const select2 = document.getElementById('doctorSelect2');
+                
+                // เคลียร์ options เก่า
+                [select1, select2].forEach(select => {
+                    while (select.children.length > 1) {
+                        select.removeChild(select.lastChild);
+                    }
+                });
+                
+                // เพิ่ม options ใหม่
+                doctorKeys.forEach(doctorKey => {
+                    const doctorName = this.availableDoctors[doctorKey].doctorName;
+                    
+                    [select1, select2].forEach(select => {
+                        const option = document.createElement('option');
+                        option.value = doctorKey;
+                        option.textContent = doctorName;
+                        select.appendChild(option);
+                    });
+                });
+            }
+            
+            updateColumnDisplay(columnNumber) {
+                const doctorKey = this.selectedDoctors[`column${columnNumber}`];
+                const contentDiv = document.getElementById(`column${columnNumber}Content`);
+                
+                if (!doctorKey || !this.availableDoctors[doctorKey]) {
+                    contentDiv.innerHTML = '<div class="no-queue">กรุณาเลือกหมอ</div>';
+                    return;
+                }
+                
+                const doctorData = this.availableDoctors[doctorKey];
+                const html = this.renderDoctorSection(doctorKey, doctorData, false); // ไม่แสดงหัวข้อหมอ
+                contentDiv.innerHTML = html;
+            }
+            
+            showError(message) {
+                const doctorSections = document.getElementById('doctorSections');
+                const columnsContainer = document.getElementById('columnsContainer');
+                
+                doctorSections.innerHTML = `<div class="no-queue">${message}</div>`;
+                doctorSections.classList.remove('hidden');
+                columnsContainer.classList.add('hidden');
+            }
+
+            saveDoctorSelections() {
+                localStorage.setItem('selectedDoctors', JSON.stringify(this.selectedDoctors));
+            }
+
+            loadDoctorSelections() {
+                const saved = localStorage.getItem('selectedDoctors');
+                if (saved) {
+                    try {
+                        this.selectedDoctors = JSON.parse(saved);
+                    } catch (e) {
+                        this.selectedDoctors = { column1: '', column2: '' };
+                    }
+                }
+            }
+
+            showUpdateLoading() {
+                // ลบ loading indicator เดิมถ้ามี
+                const existingLoader = document.querySelector('.update-loading');
+                if (existingLoader) {
+                    existingLoader.remove();
+                }
+
+                // สร้าง loading indicator ใหม่
+                const loader = document.createElement('div');
+                loader.className = 'update-loading';
+                loader.innerHTML = `
+                    <div class="mini-spinner"></div>
+                    <span>อัปเดตข้อมูลคิว...</span>
+                `;
+                document.body.appendChild(loader);
+            }
+
+            hideUpdateLoading() {
+                // รอ 800ms แล้วค่อยซ่อน เพื่อให้ผู้ใช้เห็นว่ามีการอัปเดต
+                setTimeout(() => {
+                    const loader = document.querySelector('.update-loading');
+                    if (loader) {
+                        loader.style.animation = 'slideIn 0.3s ease reverse';
+                        setTimeout(() => {
+                            loader.remove();
+                        }, 300);
+                    }
+                }, 800);
+            }
+        }
+
+        // เริ่มต้นแอปพลิเคชัน
+        document.addEventListener('DOMContentLoaded', () => {
+            new QueueDisplay();
+        });
+    </script>
+</body>
+</html>
