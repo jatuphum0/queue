@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบเจ้าหน้าที่</title>
+    <style>
+        @font-face {
+        font-family: 'Sarabun';
+        src: url('../fonts/Sarabun-Regular.ttf') format('truetype'),
+            url('../fonts/Sarabun-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        }              
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>เข้าสู่ระบบเจ้าหน้าที่</h1>
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="department">แผนก</label>
+                <select id="department" name="department" class="form-control" required>
+                    <option value="">-- เลือกแผนก --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="password">รหัสผ่าน</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn-login">เข้าสู่ระบบ</button>
+        </form>
+        <div id="errorMessage" class="error-message"></div>
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <div>กำลังดำเนินการ...</div>
+        </div>
+    </div>
+
+    <script>
+        class LoginSystem {
+            constructor() {
+                this.form = document.getElementById('loginForm');
+                this.departmentSelect = document.getElementById('department');
+                this.errorMessage = document.getElementById('errorMessage');
+                this.loading = document.getElementById('loading');
+                this.init();
+            }
+
+            init() {
+                this.loadDepartments();
+                this.setupEventListeners();
+            }
+
+            async loadDepartments() {
+                try {
+                    const response = await fetch('../get_departments.php');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.populateDepartments(data.departments);
+                    }
+                } catch (error) {
+                    this.showError('ไม่สามารถโหลดรายการแผนกได้');
+                }
+            }
+
+            populateDepartments(departments) {
+                Object.entries(departments).forEach(([key, value]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = value;
+                    this.departmentSelect.appendChild(option);
+                });
+            }
+
+            setupEventListeners() {
+                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+            }
+
+            async handleSubmit(e) {
+                e.preventDefault();
+                this.errorMessage.style.display = 'none';
+                this.loading.style.display = 'block';
+
+                const formData = new FormData(this.form);
+
+                try {
+                    const response = await fetch('login.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    // console.log(data);
+                    if (data.success) {
+                        window.location.href = 'staff.php';
+                    } else {
+                        this.showError(data.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+                    }
+                } catch (error) {
+                    this.showError('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'+error);
+                } finally {
+                    this.loading.style.display = 'none';
+                }
+            }
+
+            showError(message) {
+                this.errorMessage.textContent = message;
+                this.errorMessage.style.display = 'block';
+                this.loading.style.display = 'none';
+            }
+        }
+
+        new LoginSystem();
+    </script>
+</body>
+</html>
